@@ -8,7 +8,7 @@ from scipy import stats
 
 def x_cal_plot(X,city,r,cluster_num,h,w,now):
     # Set image file name
-    imagefile = 'images/x-' + city + '_bandnum_' + str(r) + '_clusternum_' + str(cluster_num) + '_' + now.strftime("%Y%m%d-%H%M")
+    imagefile = 'images/x-' + city + '_bandnum_' + str(r) + '_clusternum_' + str(cluster_num) + '_' + now
 
 
     # クラスタ数2から探索させてみる

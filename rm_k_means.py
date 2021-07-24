@@ -7,24 +7,31 @@ from scipy import stats
 
 def k_get_raw_data(city,dataset,r,x,y,h,w):
     mimage = np.zeros((h, w, r), dtype=int)
+    l =[ 2, 3, 4, 8 ]
 
     for i in range(r):
-        b = i + 1
-        #print('====== Extract band' + str(b))
+        b = i + 2
+ 
+        if b in l:
+            print(str(b) + ' is in list')
 
-        with rasterio.open(city + '\\' + dataset + str(b) + '.tiff') as src:
-            data = src.read()# numpy形式で読み込み
+            #print('====== Extract band' + str(b))
 
-        # データのサイズの確認
-        #print('Shape: ' + str(data.shape))
-        #print('Dimension: ' + str(data.ndim))    
+            with rasterio.open(city + '\\' + dataset + str(b) + '.jp2') as src:
+                data = src.read()# numpy
 
-        img = data[0][y:y+h, x:x+w]
+            # Check data size
+            print('Shape: ' + str(data.shape))
+            print('Dimension: ' + str(data.ndim))    
+            print('Dataset:' + str(dataset))
 
-        #print('Extracted Image Shape: ' + str(img.shape))
-        mimage[:, :, i] = img
-        #print('Merged Flatted shape:'+ str(mimage.shape))    
-        #print('Merged Flatted data:'+ str(mimage[:, :, i][:2]))    # show first two rows
+
+            img = data[0][y:y+h, x:x+w]
+
+            #print('Extracted Image Shape: ' + str(img.shape))
+            mimage[:, :, i] = img
+            #print('Merged Flatted shape:'+ str(mimage.shape))    
+            #print('Merged Flatted data:'+ str(mimage[:, :, i][:2]))    # show first two rows
 
 
     new_shape = (mimage.shape[0] * mimage.shape[1], mimage.shape[2])
@@ -38,7 +45,7 @@ def k_get_raw_data(city,dataset,r,x,y,h,w):
 def k_cal_show_image(X,city,dataset,r,cluster_num,x,y,h,w,now):
 
     # Set image file name
-    imagefile = 'images/k-' + city + '_bandnum_' + str(r) + '_clusternum_' + str(cluster_num) + '_' + now.strftime("%Y%m%d-%H%M")
+    imagefile = 'images/k-' + city + '_bandnum_' + str(r) + '_clusternum_' + str(cluster_num) + '_' + now
 
     # Clustering
     k_means = cluster.KMeans(n_clusters=cluster_num)
@@ -76,7 +83,7 @@ def k_cal_show_image(X,city,dataset,r,cluster_num,x,y,h,w,now):
     print('unique color:' + str(cluster_size[:,1]))
 
     # Set color map
-    im = plt.imshow(X_cluster_new,cmap='jet')
+    im = plt.imshow(X_cluster_new,cmap='turbo')
     # get the colors of the values, according to the colormap used by imshow
     colors = [ im.cmap(im.norm(value)) for value in cluster_size[:,0]]
     # create a patch (proxy artist) for every color 
@@ -94,7 +101,7 @@ def k_cal_show_image(X,city,dataset,r,cluster_num,x,y,h,w,now):
     plt.tight_layout()
 
     plt.savefig(imagefile + '.png')
-    plt.show(block=False)
+    #plt.show()
 
     k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size)
 
@@ -141,7 +148,7 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
             plt.rcParams["font.size"] = 7
             plt.get_current_fig_manager().full_screen_toggle()
 
-        # 最終列の値が1のデータのみ取得
+        # Get if last one is 1
         index = np.where(X[:, -1] == i)
 
         print('Cluster ' + str(i) + ': ' + str(X[index].shape))
@@ -168,7 +175,7 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
         if i % d == d-1 or i == cluster_num-1:
             plt.tight_layout()
             plt.savefig(imagefile + '-' + str(i+1) + '-hist.png')
-            plt.show(block=False)
+            #plt.show(block=False)
 
     # Plot std /  band / cluster
     print('cluster_std shape:' + str(cluster_std.shape))
@@ -189,7 +196,7 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
             plt.plot(cluster_std[:,c], label="Cluster {}".format(c), marker="o", linestyle = "--")
     plt.legend()
     plt.savefig(imagefile + '-' + str(i+1) + '-std.png')
-    plt.show(block=False)
+    #plt.show(block=False)
 
     # Plot CV chart
     fig = plt.figure(figsize=(19.0, 10.0/0.96))
@@ -202,7 +209,7 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
             plt.plot(cluster_cv[:,c], label="Cluster {}".format(c), marker="o", linestyle = "--")
     plt.legend()
     plt.savefig(imagefile + '-' + str(i+1) + '-cv.png')
-    plt.show(block=False)
+    #plt.show(block=False)
 
 def k_get_elbow(X,cluster_num):
     distortions = []
@@ -213,7 +220,7 @@ def k_get_elbow(X,cluster_num):
         distortions.append(km.inertia_)   # km.fitするとkm.inertia_が求まる
         #y_km = km.fit_predict(X)
 
-    plt.plot(range(1,11),distortions,marker='o')
+    plt.plot(range(1,cluster_num+1),distortions,marker='o')
     plt.xlabel('Number of clusters')
     plt.ylabel('Distortion')
     plt.show()

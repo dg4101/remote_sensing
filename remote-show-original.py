@@ -10,7 +10,12 @@ gdal.UseExceptions()
 gdal.AllRegister()
 
 # Get image date
-with rasterio.open('kyoto\LC08_L1TP_110036_20171222_20180102_01_T1_BR1.tiff') as src2:
+# Landstat8 atami
+# with rasterio.open('atami\LC08_L1TP_108036_20210610_20210615_02_T1_B10.TIF') as src2:
+# sentinel 1 atami
+with rasterio.open('atami\T54SUD_20210601T012659_B02.jp2') as src2:
+    
+#with rasterio.open('kyoto\T53SNU_20210510T013651_B8A.jp2') as src2:
 #with rasterio.open('kyoto\LC08_L1TP_110036_20201027_20201106_01_T1_B2.tiff') as src2:
 #with rasterio.open('singapore\LC08_L1TP_125059_20180524_20180605_01_T1_B2.tiff') as src2:
     data2 = src2.read()# numpy形式で読み込み
