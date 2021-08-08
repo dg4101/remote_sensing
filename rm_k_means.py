@@ -6,38 +6,36 @@ import collections
 from scipy import stats
 
 def k_get_raw_data(city,dataset,r,x,y,h,w):
-    mimage = np.zeros((h, w, r), dtype=int)
-    l =[ 2, 3, 4, 8 ]
 
-    for i in range(r):
-        b = i + 2
- 
-        if b in l:
-            print(str(b) + ' is in list')
+    mimage = np.zeros((h, w, len(r)), dtype=int)
 
-            #print('====== Extract band' + str(b))
+    for i in range(len(r)):
+        b = r[i]
+        print(b + ' file')
 
-            with rasterio.open(city + '\\' + dataset + str(b) + '.jp2') as src:
-                data = src.read()# numpy
+        #print('====== Extract band' + str(b))
 
-            # Check data size
-            print('Shape: ' + str(data.shape))
-            print('Dimension: ' + str(data.ndim))    
-            print('Dataset:' + str(dataset))
+        with rasterio.open(city + '\\' + dataset + b + '.jp2') as src:
+            data = src.read()# numpy
+
+        # Check data size
+        print('Shape: ' + str(data.shape))
+        print('Dimension: ' + str(data.ndim))    
+        print('Dataset:' + dataset + b )
 
 
-            img = data[0][y:y+h, x:x+w]
+        img = data[0][y:y+h, x:x+w]
 
-            #print('Extracted Image Shape: ' + str(img.shape))
-            mimage[:, :, i] = img
-            #print('Merged Flatted shape:'+ str(mimage.shape))    
-            #print('Merged Flatted data:'+ str(mimage[:, :, i][:2]))    # show first two rows
+        #print('Extracted Image Shape: ' + str(img.shape))
+        mimage[:, :, i] = img
+        #print('Merged Flatted shape:'+ str(mimage.shape))    
+        #print('Merged Flatted data:'+ str(mimage[:, :, i][:2]))    # show first two rows
 
 
     new_shape = (mimage.shape[0] * mimage.shape[1], mimage.shape[2])
     #print('New shape: ' + str(new_shape))
 
-    X = mimage[:, :, :r].reshape(new_shape)
+    X = mimage[:, :, :len(r)].reshape(new_shape)
 
     #print('X shape:' + str(X.shape))
     return X
@@ -45,7 +43,8 @@ def k_get_raw_data(city,dataset,r,x,y,h,w):
 def k_cal_show_image(X,city,dataset,r,cluster_num,x,y,h,w,now):
 
     # Set image file name
-    imagefile = 'images/k-' + city + '_bandnum_' + str(r) + '_clusternum_' + str(cluster_num) + '_' + now
+    listToStr = ' '.join(map(str, r))
+    imagefile = 'images/k-' + city + '_bandnum_' + listToStr+ '_clusternum_' + str(cluster_num) + '_' + now
 
     # Clustering
     k_means = cluster.KMeans(n_clusters=cluster_num)
@@ -132,8 +131,8 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
     print('X extracted data cluster info:' + str(X[:,-1]))
 
     # Array cluster, band , std, cv
-    cluster_std = np.zeros((r, cluster_num))
-    cluster_cv = np.zeros((r, cluster_num))
+    cluster_std = np.zeros((len(r), cluster_num))
+    cluster_cv = np.zeros((len(r), cluster_num))
 
     d = 3
 
@@ -143,7 +142,7 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
             a = 0
             # Set subplot
             fig = plt.figure(figsize=(19.0, 10.0/0.96))
-            fig.subplots(d, r)  # d = rows, r= columns: number of band
+            fig.subplots(d, len(r))  # d = rows, r= columns: number of band
             fig.suptitle(city + ': cluster:' + str(cluster_num) + ' : ' + str(i/d+1) ,fontsize=10)
             plt.rcParams["font.size"] = 7
             plt.get_current_fig_manager().full_screen_toggle()
@@ -154,14 +153,15 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
         print('Cluster ' + str(i) + ': ' + str(X[index].shape))
         print(X[index][:2]) # show first two rows
 
-        for j in range(r): # 
+        for j in range(len(r)): # 
+            b = r[j]
             dataset = X[index][:,j] # cluster i, band j
-            print('Cluster ' + str(i) + ' Band ' + str(j+1) + ': ' + str(dataset.shape))
+            print('Cluster ' + str(i) + ' Band ' + b + ': ' + str(dataset.shape))
             print('STD: ' + str(f'{np.std(dataset):.1f}'))
             print(dataset[:5])    # first 5 rows
 
-            plt.subplot(d,r,j+1+a*r) # row d, r band, 
-            plt.title('Cluster:' + str(i) + ' Band:' + str(j+1) + ' STD:' + str(f'{np.std(dataset):.1f}'))
+            plt.subplot(d,len(r),j+1+a*len(r)) # row d, r band, 
+            plt.title('Cluster:' + str(i) + ' Band:' + b + ' STD:' + str(f'{np.std(dataset):.1f}'))
             plt.hist(dataset, bins=15)  # histogram
 
             #  Add STD to cluster_std
@@ -186,11 +186,12 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
     print('Lowest num cluster:' + str(cluster_size[np.argmin(cluster_size[:,1]),0]))
 
     #plt.close("all") # Close all prvisou ones
+    listToStr = ' '.join(map(str, r))
     fig = plt.figure(figsize=(19.0, 10.0/0.96))
     plt.xlabel("Band")
     plt.ylabel("Standard Devisation")
-    plt.title('K-Means Cluster:' + str(cluster_num) + ' Band:' + str(r) + ' Standard Divisation')
-    plt.xticks(list(range(0, r)),list(range(1, r+1)))
+    plt.title('K-Means Cluster:' + str(cluster_num) + ' Band:' + listToStr + ' Standard Divisation')
+    plt.xticks(list(range(0, len(r))),list(range(1, len(r)+1)))
     for c in range(cluster_num):
         if c != ex_cluster:
             plt.plot(cluster_std[:,c], label="Cluster {}".format(c), marker="o", linestyle = "--")
@@ -202,8 +203,8 @@ def k_get_hist(X,cluster_num,r,X_cluster,imagefile,city,cluster_size):
     fig = plt.figure(figsize=(19.0, 10.0/0.96))
     plt.xlabel("Band")
     plt.ylabel("Standard Devisation")
-    plt.title('K-Means Cluster:' + str(cluster_num) + ' Band:' + str(r) + ' Coefficient of Variation')
-    plt.xticks(list(range(0, r)),list(range(1, r+1)))
+    plt.title('K-Means Cluster:' + str(cluster_num) + ' Band:' + listToStr + ' Coefficient of Variation')
+    plt.xticks(list(range(0, len(r))),list(range(1, len(r)+1)))
     for c in range(cluster_num):
         if c != ex_cluster:
             plt.plot(cluster_cv[:,c], label="Cluster {}".format(c), marker="o", linestyle = "--")

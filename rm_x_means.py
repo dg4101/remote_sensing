@@ -8,7 +8,8 @@ from scipy import stats
 
 def x_cal_plot(X,city,r,cluster_num,h,w,now):
     # Set image file name
-    imagefile = 'images/x-' + city + '_bandnum_' + str(r) + '_clusternum_' + str(cluster_num) + '_' + now
+    listToStr = ' '.join(map(str, r))
+    imagefile = 'images/x-' + city + '_bandnum_' + listToStr + '_clusternum_' + str(cluster_num) + '_' + now
 
 
     # クラスタ数2から探索させてみる
@@ -123,8 +124,8 @@ def x_get_hist(X,cluster_num,r,X_cluster_new,imagefile,city,X_cluster_info):
     print('X extracted data cluster info:' + str(X[:,-1]))
 
     # Array cluster, band , std, cv
-    cluster_std = np.zeros((r, cluster_num))
-    cluster_cv = np.zeros((r, cluster_num))
+    cluster_std = np.zeros((len(r), cluster_num))
+    cluster_cv = np.zeros((len(r), cluster_num))
 
     d = 3
 
@@ -134,7 +135,7 @@ def x_get_hist(X,cluster_num,r,X_cluster_new,imagefile,city,X_cluster_info):
             a = 0
             # Set subplot
             fig = plt.figure(figsize=(19.0, 10.0/0.96))
-            fig.subplots(d, r)  # d = rows, r= columns: number of band
+            fig.subplots(d, len(r))  # d = rows, r= columns: number of band
             fig.suptitle(city + ': cluster:' + str(cluster_num) + ' : ' + str(i/d+1) ,fontsize=10)
             plt.rcParams["font.size"] = 7
             plt.get_current_fig_manager().full_screen_toggle()
@@ -145,14 +146,14 @@ def x_get_hist(X,cluster_num,r,X_cluster_new,imagefile,city,X_cluster_info):
         print('Cluster ' + str(i) + ': ' + str(X[index].shape))
         print(X[index][:2]) # show first two rows
 
-        for j in range(r): # 
+        for j in range(len(r)): # 
             dataset = X[index][:,j] # cluster i, band j
             print('Cluster ' + str(i) + ' Band ' + str(j+1) + ': ' + str(dataset.shape))
             print('STD: ' + str(f'{np.std(dataset):.1f}'))
             print('CV: ' + str(f'{stats.variation(dataset):.3f}'))
             print(dataset[:5])    # first 5 rows
 
-            plt.subplot(d,r,j+1+a*r) # row d, r band, 
+            plt.subplot(d,len(r),j+1+a*len(r)) # row d, r band, 
             plt.title('Cluster:' + str(i) + ' Band:' + str(j+1) + ' STD:' + str(f'{np.std(dataset):.1f}'))
             plt.hist(dataset, bins=15)  # histogram
 
@@ -179,11 +180,12 @@ def x_get_hist(X,cluster_num,r,X_cluster_new,imagefile,city,X_cluster_info):
     print('Lowest num cluster:' + str(X_cluster_info[0,np.argmin(X_cluster_info[1,:])]))
 
     # Plot STD chart
+    listToStr = ' '.join(map(str, r))
     fig = plt.figure(figsize=(19.0, 10.0/0.96))
     plt.xlabel("Band")
     plt.ylabel("Standard Devisation")
-    plt.title('X-Means Cluster:' + str(cluster_num) + ' Band:' + str(r) + ' Standard Divisation')
-    plt.xticks(list(range(0, r)),list(range(1, r+1)))
+    plt.title('X-Means Cluster:' + str(cluster_num) + ' Band:' + listToStr + ' Standard Divisation')
+    plt.xticks(list(range(0, len(r))),list(range(1, len(r)+1)))
     for c in range(cluster_num):
         if c != ex_cluster:
             plt.plot(cluster_std[:,c], label="Cluster {}".format(c), marker="o", linestyle = "--")
@@ -195,8 +197,8 @@ def x_get_hist(X,cluster_num,r,X_cluster_new,imagefile,city,X_cluster_info):
     fig = plt.figure(figsize=(19.0, 10.0/0.96))
     plt.xlabel("Band")
     plt.ylabel("Standard Devisation")
-    plt.title('X-Means Cluster:' + str(cluster_num) + ' Band:' + str(r) + ' Coefficient of Variation')
-    plt.xticks(list(range(0, r)),list(range(1, r+1)))
+    plt.title('X-Means Cluster:' + str(cluster_num) + ' Band:' + listToStr + ' Coefficient of Variation')
+    plt.xticks(list(range(0, len(r))),list(range(1, len(r)+1)))
     for c in range(cluster_num):
         if c != ex_cluster:
             plt.plot(cluster_cv[:,c], label="Cluster {}".format(c), marker="o", linestyle = "--")
